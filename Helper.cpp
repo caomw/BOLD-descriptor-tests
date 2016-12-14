@@ -11,6 +11,7 @@ Helper::~Helper()
 void Helper::ComputeBinaryDescriptors(vector<Mat> patches, Mat& descriptors, Mat& masks)
 {
     BOLD Bold;
+
     for(int i = 0; i < patches.size(); i++)
     {
         Mat tmpDescriptor, tmpMask;
@@ -19,6 +20,10 @@ void Helper::ComputeBinaryDescriptors(vector<Mat> patches, Mat& descriptors, Mat
         uchar *desc = tmpDescriptor.ptr<uchar>(0);
         uchar *mask = tmpMask.ptr<uchar>(0);
 
+
+//        bitset<8> x(*desc);
+//        cout << x << endl;
+
         descriptors.push_back(*desc);
         masks.push_back(*mask);
     }
@@ -26,11 +31,17 @@ void Helper::ComputeBinaryDescriptors(vector<Mat> patches, Mat& descriptors, Mat
 
 vector<Mat> Helper::ComputePatches(vector<KeyPoint> keypoints, Mat img)
 {
+//    namedWindow("aaa", WINDOW_NORMAL);
     vector<Mat> patches;
     for(int i = 0; i < keypoints.size(); i++)
     {
         Mat tile = GetPatch(img, keypoints[i]);
-        patches.push_back(tile);
+        if(tile.rows == patchSize.width && tile.cols == patchSize.height)
+        {
+            patches.push_back(tile);
+//            imshow("aaa", tile);
+//            waitKey(0);
+        }
     }
     return patches;
 }
@@ -41,12 +52,11 @@ Mat Helper::GetPatch(Mat img, KeyPoint keypoint)
     int col = round(keypoint.pt.y);
     Range colRange, rowRange;
 
-
     if(row > patchSize.height/2 && col > patchSize.width/2 && col < (img.cols - patchSize.width/2) && row < (img.rows - patchSize.height/2))
     {
         colRange = Range(col - patchSize.width/2, col + patchSize.width/2);
         rowRange = Range(row - patchSize.height/2, row + patchSize.height/2);
-        //cout << "rowrange: " << rowRange.start << " " << rowRange.end << endl << "colrange: " << colRange.start << colRange.end << endl << endl;
+        //cout << "rowrange: " << rowRange.start << " " << rowRange.end << endl << "colrange: " << colRange.start << " " << colRange.end << endl << endl;
         return img(rowRange, colRange);
     }
     else

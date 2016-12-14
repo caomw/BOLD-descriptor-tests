@@ -7,6 +7,9 @@ using namespace cv::xfeatures2d;
 
 int main()
 {
+    //dataset data;
+    //init_dataset(&data,(char*) "dataset/notredame/");
+
     //-- Read images and resize them
     Mat imgFront = imread("s1.jpg", IMREAD_GRAYSCALE );
     Mat imgSide = imread("s2.jpg", IMREAD_GRAYSCALE );
@@ -14,7 +17,7 @@ int main()
     resize(imgSide, imgSide, Size(600, 800));
 
     //-- Detect keypoints using SURF Detector
-    int minHessian = 400;
+    int minHessian = 500;
     Ptr<SURF> Detector = SURF::create( minHessian );
     vector<KeyPoint> keypointsFront, keypointsSide;
     Detector->detect(imgFront, keypointsFront);
@@ -31,23 +34,14 @@ int main()
     ImageHelper.ComputeBinaryDescriptors(patchesFront, descriptorsFront, masksFront);
     ImageHelper.ComputeBinaryDescriptors(patchesSide, descriptorsSide, masksSide);
 
-    transpose(masksFront, masksFront);
-    transpose(masksSide, masksSide);
-
-//    vector<Mat> masks;
-//    masks.push_back(masksFront);
-//    masks.push_back(masksSide);
-
-//    for(int i = 0; i < masks.size(); i++)
-//    {
-//        cout << "rows" << masks[i].rows << endl;
-//        cout << "cols: " << masks[i].cols << endl;
-//    }
+//    //cout << descriptorsFront.size() << endl;
 
     //-- Match descriptors
-    BFMatcher matcher(NORM_HAMMING, true);
+    BFMatcher matcher(NORM_HAMMING, false);
     vector<DMatch> matches;
-    matcher.match(descriptorsFront, descriptorsSide, matches);  //TODO: add masks
+
+    //matcher.match(descriptorsFront, descriptorsSide, matches);  //TODO: add masks
+    matcher.match(masksFront, masksSide, matches);  //TODO: add masks
 
     //-- Draw matches
     Mat imgMatches;
