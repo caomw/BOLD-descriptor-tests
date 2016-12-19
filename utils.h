@@ -15,6 +15,7 @@
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/highgui.hpp"
 #include "Helper.h"
+#include <fstream>
 
 /* Dataset */
 #define GT_SIZE 100000

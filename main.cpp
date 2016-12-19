@@ -23,25 +23,33 @@ int main()
     Detector->detect(imgFront, keypointsFront);
     Detector->detect(imgSide, keypointsSide);
 
-    //-- Get patches of compared images
     Helper ImageHelper;
+    string name1 = "keypoint1.desc"; int desc1 = 964;
+    string name2 = "keypoint2.desc"; int desc2 = 1912;
+//    ImageHelper.SaveKeypointsToFile(name1, keypointsFront);
+//    ImageHelper.SaveKeypointsToFile(name2, keypointsSide);
+
+    //-- Get patches of compared images
     vector<Mat> patchesFront = ImageHelper.ComputePatches(keypointsFront, imgFront);
     vector<Mat> patchesSide = ImageHelper.ComputePatches(keypointsSide, imgSide);
 
-    //-- Describe keypoints
+//    //-- Describe keypoints
     Mat descriptorsFront, masksFront;
     Mat descriptorsSide, masksSide;
-    ImageHelper.ComputeBinaryDescriptors(patchesFront, descriptorsFront, masksFront);
-    ImageHelper.ComputeBinaryDescriptors(patchesSide, descriptorsSide, masksSide);
+    ImageHelper.ComputeBinaryDescriptors(patchesFront, descriptorsFront, masksFront, name1, desc1);
+    ImageHelper.ComputeBinaryDescriptors(patchesSide, descriptorsSide, masksSide, name2, desc2);
 
-//    //cout << descriptorsFront.size() << endl;
+    //cout << descriptorsFront.size() << endl;
 
     //-- Match descriptors
-    BFMatcher matcher(NORM_HAMMING, false);
+    cout << masksFront.size() << " " << masksSide.size() << endl;
+
+
+    BFMatcher matcher(NORM_HAMMING, true);
     vector<DMatch> matches;
 
-    //matcher.match(descriptorsFront, descriptorsSide, matches);  //TODO: add masks
-    matcher.match(masksFront, masksSide, matches);  //TODO: add masks
+    matcher.match(descriptorsFront, descriptorsSide, matches);
+    //matcher.match(masksFront, masksSide, matches);
 
     //-- Draw matches
     Mat imgMatches;
@@ -52,6 +60,7 @@ int main()
 
     waitKey(0);
 
+    return 0;
     //  /* get descriptors for patch pairs */
     //  for (int i = 0; i < GT_SIZE; i++) {
     //    int id1 = data.gt[i][0];
@@ -106,6 +115,4 @@ int main()
     //    free(data.gt[i]);
     //  }
     //  free(data.gt);
-
-  return 0;
 }

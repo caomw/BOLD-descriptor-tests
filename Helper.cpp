@@ -8,25 +8,34 @@ Helper::~Helper()
 {
 }
 
-void Helper::ComputeBinaryDescriptors(vector<Mat> patches, Mat& descriptors, Mat& masks)
+void Helper::ComputeBinaryDescriptors(vector<Mat> patches, Mat& descriptors, Mat& masks, string filename, int descNum)
 {
-    BOLD Bold;
+    BOLD* Bold = new BOLD(filename, descNum);
 
     for(int i = 0; i < patches.size(); i++)
     {
         Mat tmpDescriptor, tmpMask;
-        Bold.compute_patch(patches[i], tmpDescriptor, tmpMask);
 
+        Bold->compute_patch(patches[i], tmpDescriptor, tmpMask);
         uchar *desc = tmpDescriptor.ptr<uchar>(0);
         uchar *mask = tmpMask.ptr<uchar>(0);
-
-
-//        bitset<8> x(*desc);
-//        cout << x << endl;
 
         descriptors.push_back(*desc);
         masks.push_back(*mask);
     }
+
+    delete Bold;
+}
+
+void Helper::SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints)
+{
+    fstream outputFile;
+    outputFile.open(filename.c_str(), ios::out );
+    for(size_t i = 0; i < keypoints.size(); i++)
+    {
+       outputFile << floor(keypoints[i].pt.x) << " " << floor(keypoints[i].pt.y) << endl;
+    }
+    outputFile.close( );
 }
 
 vector<Mat> Helper::ComputePatches(vector<KeyPoint> keypoints, Mat img)

@@ -14,8 +14,10 @@ public:
     Helper(void);
     ~Helper();
     vector<Mat> ComputePatches(vector<KeyPoint>, Mat img);
-    void ComputeBinaryDescriptors(vector<Mat> patches, Mat &descriptors, Mat &masks);
+    void ComputeBinaryDescriptors(vector<Mat> patches, Mat &descriptors, Mat &masks, string filename, int descNum);
+    void GetMatches();
 
+    void SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints);
 private:
     Mat GetPatch(Mat img, KeyPoint keypoint);
     CvSize patchSize;

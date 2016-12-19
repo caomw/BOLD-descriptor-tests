@@ -7,12 +7,13 @@
 #define DIMS 512
 #define NROTS 3
 
-class BOLD {
+class BOLD
+{
 public:
-  BOLD(void);
+  BOLD(std::string filename, int descNum);
   ~BOLD();
   
-  void compute_patch(cv::Mat image, cv::Mat& descrs,cv::Mat& masks);
+  void compute_patch(cv::Mat image, cv::Mat& descrs, cv::Mat& masks);
   int hampopmaskedLR(uchar *a,uchar *ma,uchar *b,uchar *mb);
   int hampop(uchar *a,uchar *b);
   int** ComputeKeypoints(cv::Mat image);
