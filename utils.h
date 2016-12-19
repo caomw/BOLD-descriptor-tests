@@ -14,10 +14,11 @@
 #include "opencv2/features2d.hpp"
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/highgui.hpp"
-#include "Helper.h"
 #include <fstream>
 
 /* Dataset */
+using namespace cv;
+
 #define GT_SIZE 100000
 typedef struct dataset 
 {
@@ -25,6 +26,15 @@ typedef struct dataset
   int npatches;
   std::vector<cv::Mat> patchesCV;
 } dataset;
+
 void init_dataset(dataset *A,const char *path);
+
+typedef struct myMatch
+{
+    Point pt;
+    Mat patch;
+    uchar descValue;
+    uchar maskValue;
+} myMatch;
 
 #endif /* _UTILS_H_ */

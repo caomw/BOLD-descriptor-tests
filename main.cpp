@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "bold.hpp"
+#include "Helper.h"
 
 using namespace std;
 using namespace cv;
@@ -7,9 +8,6 @@ using namespace cv::xfeatures2d;
 
 int main()
 {
-    //dataset data;
-    //init_dataset(&data,(char*) "dataset/notredame/");
-
     //-- Read images and resize them
     Mat imgFront = imread("s1.jpg", IMREAD_GRAYSCALE );
     Mat imgSide = imread("s2.jpg", IMREAD_GRAYSCALE );
@@ -23,6 +21,7 @@ int main()
     Detector->detect(imgFront, keypointsFront);
     Detector->detect(imgSide, keypointsSide);
 
+    //--Init Helper
     Helper ImageHelper;
     string name1 = "keypoint1.desc"; int desc1 = 964;
     string name2 = "keypoint2.desc"; int desc2 = 1912;
@@ -30,33 +29,35 @@ int main()
 //    ImageHelper.SaveKeypointsToFile(name2, keypointsSide);
 
     //-- Get patches of compared images
-    vector<Mat> patchesFront = ImageHelper.ComputePatches(keypointsFront, imgFront);
-    vector<Mat> patchesSide = ImageHelper.ComputePatches(keypointsSide, imgSide);
+    vector<myMatch> patchesFront = ImageHelper.ComputePatches(keypointsFront, imgFront);
+    vector<myMatch> patchesSide = ImageHelper.ComputePatches(keypointsSide, imgSide);
 
-//    //-- Describe keypoints
-    Mat descriptorsFront, masksFront;
-    Mat descriptorsSide, masksSide;
-    ImageHelper.ComputeBinaryDescriptors(patchesFront, descriptorsFront, masksFront, name1, desc1);
-    ImageHelper.ComputeBinaryDescriptors(patchesSide, descriptorsSide, masksSide, name2, desc2);
+    //-- Describe keypoints
+//    vector<matches> descriptorsFront, masksFront;
+//    vector<matches> descriptorsSide, masksSide;
+    ImageHelper.ComputeBinaryDescriptors(patchesFront, name1, desc1);
+    ImageHelper.ComputeBinaryDescriptors(patchesSide, name2, desc2);
 
-    //cout << descriptorsFront.size() << endl;
+    //    //-- find matches
+    vector< vector<Point> > finalMatches;
+    ImageHelper.FindMatches(patchesFront, patchesSide, finalMatches);
 
-    //-- Match descriptors
-    cout << masksFront.size() << " " << masksSide.size() << endl;
 
+    for(int i=0; i<finalMatches.size(); i++)
+    {
+        cout << finalMatches[i][1] << endl;
+        circle(imgFront, finalMatches[i][0], 3, Scalar(155, 155, 155), 2);
+        circle(imgSide, finalMatches[i][1], 3, Scalar(0, 0, 0), 2);
+    }
 
-    BFMatcher matcher(NORM_HAMMING, true);
-    vector<DMatch> matches;
+    namedWindow("img1", WINDOW_AUTOSIZE);
+    namedWindow("img2", WINDOW_AUTOSIZE);
 
-    matcher.match(descriptorsFront, descriptorsSide, matches);
-    //matcher.match(masksFront, masksSide, matches);
-
-    //-- Draw matches
-    Mat imgMatches;
-    drawMatches(imgFront, keypointsFront, imgSide, keypointsSide, matches, imgMatches);
-
-    //-- Show detected matches
-    imshow("Matches", imgMatches );
+    imshow("img1", imgFront);
+    imshow("img2", imgSide);
+//    //-- Draw matches
+//    Mat imgMatches;
+//    drawMatches(imgFront, keypointsFront, imgSide, keypointsSide, matches, imgMatches);
 
     waitKey(0);
 

@@ -7,6 +7,9 @@
 #define DIMS 512
 #define NROTS 3
 
+using namespace std;
+using namespace cv;
+
 class BOLD
 {
 public:
