@@ -46,20 +46,25 @@ int main()
     for(int i=0; i<finalMatches.size(); i++)
     {
         //cout << finalMatches[i][1] << endl;
-        circle(imgFront, finalMatches[i][0], 3, Scalar(155, 155, 155), 2);
+        circle(imgFront, finalMatches[i][0], 3, Scalar(0, 0, 0), 2);
         circle(imgSide, finalMatches[i][1], 3, Scalar(0, 0, 0), 2);
     }
 
-    namedWindow("img1", WINDOW_AUTOSIZE);
-    namedWindow("img2", WINDOW_AUTOSIZE);
 
-    imshow("img1", imgFront);
-    imshow("img2", imgSide);
-//    //-- Draw matches
-//    Mat imgMatches;
-//    drawMatches(imgFront, keypointsFront, imgSide, keypointsSide, matches, imgMatches);
+    namedWindow("result", WINDOW_AUTOSIZE);
+    for(int i=0; i<finalMatches.size(); i++)
+    {
+        Mat res(0, 0, CV_8UC3);
+        hconcat(imgFront, imgSide, res);
 
-    waitKey(0);
+        int X = finalMatches[i][1].x + imgSide.cols;
+        int Y = finalMatches[i][1].y;
+
+        line(res, finalMatches[i][0], Point(X, Y), Scalar(150, 150, 150), 2);
+        imshow("result", res);
+        waitKey(0);
+        res.release();
+    }
 
     return 0;
     //  /* get descriptors for patch pairs */

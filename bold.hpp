@@ -13,8 +13,8 @@ using namespace cv;
 class BOLD
 {
 public:
-  //BOLD(std::string filename, int descNum);
-  BOLD();
+  BOLD(std::string filename, int descNum);
+  //BOLD();
   ~BOLD();
   
   void compute_patch(cv::Mat image, cv::Mat& descrs, cv::Mat& masks);

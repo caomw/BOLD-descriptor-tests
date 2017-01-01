@@ -48,6 +48,7 @@ void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<ve
     {
         Point p;
         vector<Point> points;
+        int index = 0;
         for(int j = 1; j < descb.size();j++)
         {
             //int resultPrevious = Hampop(&desca[i].descValue, &descb[j-1].descValue);
@@ -62,20 +63,22 @@ void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<ve
             {
                 p.x = descb[j].pt.x;
                 p.y = descb[j].pt.y;
+                index = j;
             }
         }
 
-        cout << desca[i].pt << " " << p << endl;
+        //cout << desca[i].pt << " " << p << endl;
         points.push_back(desca[i].pt);
         points.push_back(p);
         results.push_back(points);
+        descb.erase(descb.begin() + index);
     }
 }
 
 void Helper::ComputeBinaryDescriptors(vector<myMatch>& patches, string filename, int descNum)
 {
-    //BOLD* Bold = new BOLD(filename, descNum);
-    BOLD* Bold = new BOLD();
+    BOLD* Bold = new BOLD(filename, descNum);
+    //BOLD* Bold = new BOLD();
     for(int i = 0; i < patches.size(); i++)
     {
         Mat tmpDescriptor, tmpMask;
