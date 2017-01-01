@@ -1,3 +1,0 @@
-/home/mbed/Desktop/abold/BOLD-descriptor-tests/build/CMakeFiles/edit_cache.dir
-/home/mbed/Desktop/abold/BOLD-descriptor-tests/build/CMakeFiles/rebuild_cache.dir
-/home/mbed/Desktop/abold/BOLD-descriptor-tests/build/CMakeFiles/bold.dir
