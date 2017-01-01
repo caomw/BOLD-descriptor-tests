@@ -34,18 +34,18 @@ int main()
 
     //-- Describe keypoints
 //    vector<matches> descriptorsFront, masksFront;
-//    vector<matches> descriptorsSide, masksSide;
+//    vector<matches> DescriptororsSide, masksSide;
     ImageHelper.ComputeBinaryDescriptors(patchesFront, name1, desc1);
     ImageHelper.ComputeBinaryDescriptors(patchesSide, name2, desc2);
 
-    //    //-- find matches
+    //-- find matches
     vector< vector<Point> > finalMatches;
     ImageHelper.FindMatches(patchesFront, patchesSide, finalMatches);
 
 
     for(int i=0; i<finalMatches.size(); i++)
     {
-        cout << finalMatches[i][1] << endl;
+        //cout << finalMatches[i][1] << endl;
         circle(imgFront, finalMatches[i][0], 3, Scalar(155, 155, 155), 2);
         circle(imgSide, finalMatches[i][1], 3, Scalar(0, 0, 0), 2);
     }

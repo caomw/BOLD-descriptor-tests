@@ -4,21 +4,67 @@
 #include <bitset>
 
 /* load tests and init 2 rotations for fast affine aprox. (example -20,20) */
-BOLD::BOLD(string filename, int descNum)
+//BOLD::BOLD(string filename, int descNum)
+//{
+//    //bin_tests = (int**) malloc(NROTS * sizeof(int *));    //NROTS = 3, sizeof(int*) = 8 -> allocate 27 bytes of memory (for 3 int pointers)   //--C style
+//    bin_tests = (int**)new int[NROTS];  //--C++ style
+//    for (int i = 0; i < NROTS; i++)
+//    {
+//        //bin_tests[i] = (int*)malloc(NTESTS*2 * sizeof(int));    //NTESTS*2 = 1524, sizeof(int) = 4 - allocate 6096 bytes of memory (for 1524 int numbers) //--C style,
+//        bin_tests[i] = new int[descNum*2];   //--C++ style
+//    }
+//    std::ifstream file(filename.c_str(), ios::in);
+////    file.open("bold.descr");
+//    //file.open(filename.c_str(), ios::in);
+
+//    /* read original tests and set them to rotation 0 */
+//    for(int j = 0; j < descNum*2; j++ )
+//    {
+//        file >> bin_tests[0][j];
+//    }
+
+//    file.close();
+//    rotations[0] = 20;
+//    rotations[1] = -20;
+
+//    /* compute the rotations offline */
+//    for (int i = 0; i < descNum*2; i+=2)
+//    {
+//        int x1 = bin_tests[0][i] % 32;
+//        int y1 = bin_tests[0][i] / 32;
+//        int x2 = bin_tests[0][i+1] % 32;
+//        int y2 = bin_tests[0][i+1] / 32;
+//        for (int a = 1; a < NROTS; a++)
+//        {
+//            float angdeg = rotations[a-1];
+//            float angle = angdeg*(float)(CV_PI/180.f);
+//            float ca = (float)cos(angle);
+//            float sa = (float)sin(angle);
+//            int rotx1 = (x1-15)*ca - (y1-15)*sa + 16;
+//            int roty1 = (x1-15)*sa + (y1-15)*ca + 16;
+//            int rotx2 = (x2-15)*ca - (y2-15)*sa + 16;
+//            int roty2 = (x2-15)*sa + (y2-15)*ca + 16;
+//            bin_tests[a][i] = rotx1 + 32*roty1;
+//            bin_tests[a][i+1] = rotx2 + 32*roty2;
+//        }
+//    }
+//}
+
+BOLD::BOLD()
 {
     //bin_tests = (int**) malloc(NROTS * sizeof(int *));    //NROTS = 3, sizeof(int*) = 8 -> allocate 27 bytes of memory (for 3 int pointers)   //--C style
     bin_tests = (int**)new int[NROTS];  //--C++ style
     for (int i = 0; i < NROTS; i++)
     {
-        //bin_tests[i] = (int*)malloc(NTESTS*2 * sizeof(int));    //NTESTS*2 = 1524, sizeof(int) = 4 - allocate 6096 bytes of memory (for 1524 int numbers) //--C style,
-        bin_tests[i] = new int[descNum*2];   //--C++ style
+        bin_tests[i] = (int*)malloc(NTESTS*2 * sizeof(int));    //NTESTS*2 = 1524, sizeof(int) = 4 - allocate 6096 bytes of memory (for 1524 int numbers) //--C style,
+        //bin_tests[i] = new int[descNum*2];   //--C++ style
     }
-    std::ifstream file(filename.c_str(), ios::in);
-//    file.open("bold.descr");
+    std::ifstream file;
+    file.open("bold.descr");
     //file.open(filename.c_str(), ios::in);
 
     /* read original tests and set them to rotation 0 */
-    for(int j = 0; j < descNum*2; j++ )
+    for(int j = 0; j < NTESTS*2; j++ )
     {
         file >> bin_tests[0][j];
     }
@@ -28,7 +74,7 @@ BOLD::BOLD(string filename, int descNum)
     rotations[1] = -20;
 
     /* compute the rotations offline */
-    for (int i = 0; i < descNum*2; i+=2)
+    for (int i = 0; i < NTESTS*2; i+=2)
     {
         int x1 = bin_tests[0][i] % 32;
         int y1 = bin_tests[0][i] / 32;

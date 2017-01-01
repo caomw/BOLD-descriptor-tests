@@ -43,14 +43,20 @@ int Helper::Hampop(uchar *a,uchar *b)
 
 void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<vector<Point> >& results)
 {
+    //brute force matcher
     for(int i=0;i<desca.size();i++)
     {
         Point p;
         vector<Point> points;
-        for(int j = 1; j < descb.size()+1;j++)
+        for(int j = 1; j < descb.size();j++)
         {
-            int resultPrevious = Hampop(&desca[i].descValue, &descb[j-1].descValue);
-            int resultCurrent = Hampop(&desca[i].descValue, &descb[j].descValue);
+            //int resultPrevious = Hampop(&desca[i].descValue, &descb[j-1].descValue);
+            //int resultCurrent = Hampop(&desca[i].descValue, &descb[j].descValue);
+            int resultPrevious = Hampopmasked(&desca[i].descValue, &desca[i].maskValue, &descb[j-1].descValue, &descb[j-1].maskValue);
+            int resultCurrent = Hampopmasked(&desca[i].descValue, &desca[i].maskValue, &descb[j].descValue, &descb[j].maskValue);
+
+
+            //cout << resultCurrent << " " << resultPrevious << endl;
 
             if(resultCurrent < resultPrevious)
             {
@@ -58,6 +64,8 @@ void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<ve
                 p.y = descb[j].pt.y;
             }
         }
+
+        cout << desca[i].pt << " " << p << endl;
         points.push_back(desca[i].pt);
         points.push_back(p);
         results.push_back(points);
@@ -66,8 +74,8 @@ void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<ve
 
 void Helper::ComputeBinaryDescriptors(vector<myMatch>& patches, string filename, int descNum)
 {
-    BOLD* Bold = new BOLD(filename, descNum);
-
+    //BOLD* Bold = new BOLD(filename, descNum);
+    BOLD* Bold = new BOLD();
     for(int i = 0; i < patches.size(); i++)
     {
         Mat tmpDescriptor, tmpMask;
@@ -75,6 +83,8 @@ void Helper::ComputeBinaryDescriptors(vector<myMatch>& patches, string filename,
         Bold->compute_patch(patches[i].patch, tmpDescriptor, tmpMask);
         uchar *desc = tmpDescriptor.ptr<uchar>(0);
         uchar *mask = tmpMask.ptr<uchar>(0);
+
+        //cout << (int)*desc << " " << (int)*mask << endl;
 
         patches[i].descValue = *desc;
         patches[i].maskValue = *mask;
