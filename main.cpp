@@ -1,6 +1,9 @@
 #include "utils.h"
 #include "bold.hpp"
 #include "Helper.h"
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 using namespace std;
 using namespace cv;
@@ -9,62 +12,38 @@ using namespace cv::xfeatures2d;
 int main()
 {
     //-- Read images and resize them
-    Mat imgFront = imread("s1.jpg", IMREAD_GRAYSCALE );
-    Mat imgSide = imread("s2.jpg", IMREAD_GRAYSCALE );
-    resize(imgFront, imgFront, Size(600, 800));
-    resize(imgSide, imgSide, Size(600, 800));
+    Mat img1 = imread("s1.jpg", IMREAD_GRAYSCALE );
+    Mat img2 = imread("s2.jpg", IMREAD_GRAYSCALE );
+    resize(img1, img1, Size(600, 800));
+    resize(img2, img2, Size(600, 800));
 
     //-- Detect keypoints using SURF Detector
-    int minHessian = 500;
+    int minHessian = 400;
     Ptr<SURF> Detector = SURF::create( minHessian );
-    vector<KeyPoint> keypointsFront, keypointsSide;
-    Detector->detect(imgFront, keypointsFront);
-    Detector->detect(imgSide, keypointsSide);
+    vector<KeyPoint> keypoints1, keypoints2;
+    Detector->detect(img1, keypoints1);
+    Detector->detect(img2, keypoints2);
 
-    //--Init Helper
+    //-- Init Helper
     Helper ImageHelper;
-    string name1 = "keypoint1.desc"; int desc1 = 964;
-    string name2 = "keypoint2.desc"; int desc2 = 1912;
-//    ImageHelper.SaveKeypointsToFile(name1, keypointsFront);
-//    ImageHelper.SaveKeypointsToFile(name2, keypointsSide);
 
     //-- Get patches of compared images
-    vector<myMatch> patchesFront = ImageHelper.ComputePatches(keypointsFront, imgFront);
-    vector<myMatch> patchesSide = ImageHelper.ComputePatches(keypointsSide, imgSide);
+    vector<Mat> patches1, patches2;
+    ImageHelper.ComputePatches(keypoints1, img1, patches1);
+    ImageHelper.ComputePatches(keypoints2, img2, patches2);
 
     //-- Describe keypoints
-//    vector<matches> descriptorsFront, masksFront;
-//    vector<matches> DescriptororsSide, masksSide;
-    ImageHelper.ComputeBinaryDescriptors(patchesFront, name1, desc1);
-    ImageHelper.ComputeBinaryDescriptors(patchesSide, name2, desc2);
+    Mat descriptors1, descriptors2, masks1, masks2;
+    ImageHelper.ComputeBinaryDescriptors(patches1, descriptors1, masks1);
+    ImageHelper.ComputeBinaryDescriptors(patches2, descriptors2, masks2);
 
-    //-- find matches
-    vector< vector<Point> > finalMatches;
-    ImageHelper.FindMatches(patchesFront, patchesSide, finalMatches);
+    //-- Find matches
+    std::vector< DMatch > matches;
+    ImageHelper.FindBfMatches(descriptors1, descriptors2, matches);
 
-
-    for(int i=0; i<finalMatches.size(); i++)
-    {
-        //cout << finalMatches[i][1] << endl;
-        circle(imgFront, finalMatches[i][0], 3, Scalar(0, 0, 0), 2);
-        circle(imgSide, finalMatches[i][1], 3, Scalar(0, 0, 0), 2);
-    }
-
-
-    namedWindow("result", WINDOW_AUTOSIZE);
-    for(int i=0; i<finalMatches.size(); i++)
-    {
-        Mat res(0, 0, CV_8UC3);
-        hconcat(imgFront, imgSide, res);
-
-        int X = finalMatches[i][1].x + imgSide.cols;
-        int Y = finalMatches[i][1].y;
-
-        line(res, finalMatches[i][0], Point(X, Y), Scalar(150, 150, 150), 2);
-        imshow("result", res);
-        waitKey(0);
-        res.release();
-    }
+    //- Draw matches
+    Mat imgMatches;
+    ImageHelper.DrawMatches(img1, keypoints1, img2, keypoints2, matches, imgMatches);
 
     return 0;
     //  /* get descriptors for patch pairs */
@@ -122,3 +101,6 @@ int main()
     //  }
     //  free(data.gt);
 }
+
+
+

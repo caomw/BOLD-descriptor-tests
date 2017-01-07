@@ -16,6 +16,7 @@
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/highgui.hpp"
 #include <fstream>
+#include <cstddef>
 
 /* Dataset */
 using namespace cv;
@@ -30,12 +31,5 @@ typedef struct dataset
 
 void init_dataset(dataset *A,const char *path);
 
-typedef struct myMatch
-{
-    Point pt;
-    Mat patch;
-    uchar descValue;
-    uchar maskValue;
-} myMatch;
 
 #endif /* _UTILS_H_ */

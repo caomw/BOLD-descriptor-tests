@@ -63,4 +63,3 @@ void init_dataset(dataset *A,const char *path)
   }
   fclose(in_file);
 }
-

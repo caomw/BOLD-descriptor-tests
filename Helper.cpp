@@ -4,11 +4,74 @@ Helper::Helper()
 {
     patchSize = CvSize(32, 32);
 }
-Helper::~Helper()
+
+Helper::~Helper() {}
+
+void Helper::ComputePatches(vector<KeyPoint>& keypoints, Mat& img, vector<Mat>& patches)
 {
+    for(int i = 0; i < keypoints.size(); i++)
+    {
+        Mat tile = GetPatch(img, keypoints[i]);
+        if(tile.rows == patchSize.width && tile.cols == patchSize.height)
+        {
+            patches.push_back(tile);
+        }
+    }
 }
 
-/* masked distance  */
+Mat Helper::GetPatch(Mat img, KeyPoint keypoint)
+{
+    int row = round(keypoint.pt.x);
+    int col = round(keypoint.pt.y);
+    Range colRange, rowRange;
+
+    if(row > patchSize.height/2 && col > patchSize.width/2 && col < (img.cols - patchSize.width/2) && row < (img.rows - patchSize.height/2))
+    {
+        colRange = Range(col - patchSize.width/2, col + patchSize.width/2);
+        rowRange = Range(row - patchSize.height/2, row + patchSize.height/2);
+        //cout << "rowrange: " << rowRange.start << " " << rowRange.end << endl << "colrange: " << colRange.start << " " << colRange.end << endl << endl;
+        return img(rowRange, colRange);
+    }
+    else
+    {
+        return img;
+    }
+}
+
+void Helper::ComputeBinaryDescriptors(vector<Mat>& patches, Mat& descriptors, Mat& masks)
+{
+    BOLD* Bold = new BOLD();
+    for(int i = 0; i < patches.size(); i++)
+    {
+        Mat tmpDescriptor, tmpMask;
+
+        Bold->compute_patch(patches[i], tmpDescriptor, tmpMask);
+
+        descriptors.push_back(tmpDescriptor);
+        masks.push_back(tmpMask);
+    }
+
+    delete Bold;
+}
+
+void Helper::FindBfMatches(Mat& descriptors1, Mat& descriptors2, vector<DMatch>& matches)
+{
+    //BFMatcher matcher;
+    //matcher.match(descriptors1, descriptors2, matches);
+    vector<vector<DMatch> > potentialMatches;
+    BFMatcher matcher;
+
+    matcher.knnMatch(descriptors1, descriptors2, potentialMatches, 2);  // Find two nearest matches
+    for (int i = 0; i < potentialMatches.size(); ++i)
+    {
+        const float ratio = 0.8; // As in Lowe's paper; can be tuned
+        if (potentialMatches[i][0].distance < ratio * potentialMatches[i][1].distance)
+        {
+            matches.push_back(potentialMatches[i][0]);
+        }
+    }
+}
+
 int Helper::Hampopmasked(uchar *a,uchar *ma,uchar *b,uchar *mb)
 {
   int distL = 0;
@@ -30,7 +93,6 @@ int Helper::Hampopmasked(uchar *a,uchar *ma,uchar *b,uchar *mb)
   return distL*wL + distR*wR;
 }
 
-/* hamming distance  */
 int Helper::Hampop(uchar *a,uchar *b)
 {
   int distL = 0;
@@ -39,61 +101,6 @@ int Helper::Hampop(uchar *a,uchar *b)
     distL += __builtin_popcount(axorb);
   }
   return distL;
-}
-
-void Helper::FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<vector<Point> >& results)
-{
-    //brute force matcher
-    for(int i=0;i<desca.size();i++)
-    {
-        Point p;
-        vector<Point> points;
-        int index = 0;
-        for(int j = 1; j < descb.size();j++)
-        {
-            //int resultPrevious = Hampop(&desca[i].descValue, &descb[j-1].descValue);
-            //int resultCurrent = Hampop(&desca[i].descValue, &descb[j].descValue);
-            int resultPrevious = Hampopmasked(&desca[i].descValue, &desca[i].maskValue, &descb[j-1].descValue, &descb[j-1].maskValue);
-            int resultCurrent = Hampopmasked(&desca[i].descValue, &desca[i].maskValue, &descb[j].descValue, &descb[j].maskValue);
-
-
-            //cout << resultCurrent << " " << resultPrevious << endl;
-
-            if(resultCurrent < resultPrevious)
-            {
-                p.x = descb[j].pt.x;
-                p.y = descb[j].pt.y;
-                index = j;
-            }
-        }
-
-        //cout << desca[i].pt << " " << p << endl;
-        points.push_back(desca[i].pt);
-        points.push_back(p);
-        results.push_back(points);
-        descb.erase(descb.begin() + index);
-    }
-}
-
-void Helper::ComputeBinaryDescriptors(vector<myMatch>& patches, string filename, int descNum)
-{
-    BOLD* Bold = new BOLD(filename, descNum);
-    //BOLD* Bold = new BOLD();
-    for(int i = 0; i < patches.size(); i++)
-    {
-        Mat tmpDescriptor, tmpMask;
-
-        Bold->compute_patch(patches[i].patch, tmpDescriptor, tmpMask);
-        uchar *desc = tmpDescriptor.ptr<uchar>(0);
-        uchar *mask = tmpMask.ptr<uchar>(0);
-
-        //cout << (int)*desc << " " << (int)*mask << endl;
-
-        patches[i].descValue = *desc;
-        patches[i].maskValue = *mask;
-    }
-
-    delete Bold;
 }
 
 void Helper::SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints)
@@ -107,39 +114,10 @@ void Helper::SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints)
     outputFile.close( );
 }
 
-vector<myMatch> Helper::ComputePatches(vector<KeyPoint> keypoints, Mat img)
+void Helper::DrawMatches(Mat &img1, vector<KeyPoint> &keypoints1, Mat &img2, vector<KeyPoint> &keypoints2, vector<DMatch> &matches, Mat &imgMatches)
 {
-//    namedWindow("aaa", WINDOW_NORMAL);
-    vector<myMatch> patches;
-    for(int i = 0; i < keypoints.size(); i++)
-    {
-        Mat tile = GetPatch(img, keypoints[i]);
-        if(tile.rows == patchSize.width && tile.cols == patchSize.height)
-        {
-            myMatch m;
-            m.patch = tile;
-            m.pt = Point(keypoints[i].pt.x, keypoints[i].pt.y);
-            patches.push_back(m);
-        }
-    }
-    return patches;
-}
-
-Mat Helper::GetPatch(Mat img, KeyPoint keypoint)
-{
-    int row = round(keypoint.pt.x);
-    int col = round(keypoint.pt.y);
-    Range colRange, rowRange;
-
-    if(row > patchSize.height/2 && col > patchSize.width/2 && col < (img.cols - patchSize.width/2) && row < (img.rows - patchSize.height/2))
-    {
-        colRange = Range(col - patchSize.width/2, col + patchSize.width/2);
-        rowRange = Range(row - patchSize.height/2, row + patchSize.height/2);
-        //cout << "rowrange: " << rowRange.start << " " << rowRange.end << endl << "colrange: " << colRange.start << " " << colRange.end << endl << endl;
-        return img(rowRange, colRange);
-    }
-    else
-    {
-        return img;
-    }
+    namedWindow("matches", 1);
+    drawMatches(img1, keypoints1, img2, keypoints2, matches, imgMatches);
+    imshow("matches", imgMatches);
+    waitKey(0);
 }

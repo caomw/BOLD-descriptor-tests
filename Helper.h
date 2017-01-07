@@ -13,12 +13,14 @@ class Helper
 public:
     Helper(void);
     ~Helper();
-    vector<myMatch> ComputePatches(vector<KeyPoint>, Mat img);
-    void ComputeBinaryDescriptors(vector<myMatch>& patches, string filename, int descNum);
+    void ComputePatches(vector<KeyPoint> &, Mat &img, vector<Mat> &patches);
+    void ComputeBinaryDescriptors(vector<Mat> &patches, Mat &descriptors, Mat &masks);
     void GetMatches();
-    void FindMatches(vector<myMatch> desca, vector<myMatch> descb, vector<vector<Point> > &finalMatches);
+    void FindBfMatches(Mat &descriptors1, Mat &descriptors2, vector<DMatch> &matches);
     void SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints);
+    void DrawMatches(Mat& img1, vector<KeyPoint>& keypoints1, Mat& img2, vector<KeyPoint>& keypoints2, vector<DMatch>& matches, Mat& imgMatches);
 private:
+    Point GetMinimumHammingDistancePoint(vector<DMatch> &vec);
     Mat GetPatch(Mat img, KeyPoint keypoint);
     CvSize patchSize;
     int Hampopmasked(uchar *a,uchar *ma,uchar *b,uchar *mb);
