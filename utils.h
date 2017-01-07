@@ -31,5 +31,4 @@ typedef struct dataset
 
 void init_dataset(dataset *A,const char *path);
 
-
 #endif /* _UTILS_H_ */

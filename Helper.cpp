@@ -1,17 +1,15 @@
 #include "Helper.h"
 
-Helper::Helper()
-{
-    patchSize = CvSize(32, 32);
-}
+Helper::Helper() {}
 
 Helper::~Helper() {}
 
 void Helper::ComputePatches(vector<KeyPoint>& keypoints, Mat& img, vector<Mat>& patches)
 {
+    CvSize patchSize = CvSize(32, 32);
     for(int i = 0; i < keypoints.size(); i++)
     {
-        Mat tile = GetPatch(img, keypoints[i]);
+        Mat tile = GetPatch(img, keypoints[i], patchSize);
         if(tile.rows == patchSize.width && tile.cols == patchSize.height)
         {
             patches.push_back(tile);
@@ -19,7 +17,7 @@ void Helper::ComputePatches(vector<KeyPoint>& keypoints, Mat& img, vector<Mat>& 
     }
 }
 
-Mat Helper::GetPatch(Mat img, KeyPoint keypoint)
+Mat Helper::GetPatch(Mat& img, KeyPoint& keypoint, const CvSize& patchSize)
 {
     int row = round(keypoint.pt.x);
     int col = round(keypoint.pt.y);
@@ -38,15 +36,14 @@ Mat Helper::GetPatch(Mat img, KeyPoint keypoint)
     }
 }
 
+
 void Helper::ComputeBinaryDescriptors(vector<Mat>& patches, Mat& descriptors, Mat& masks)
 {
     BOLD* Bold = new BOLD();
     for(int i = 0; i < patches.size(); i++)
     {
         Mat tmpDescriptor, tmpMask;
-
         Bold->compute_patch(patches[i], tmpDescriptor, tmpMask);
-
         descriptors.push_back(tmpDescriptor);
         masks.push_back(tmpMask);
     }
@@ -54,22 +51,25 @@ void Helper::ComputeBinaryDescriptors(vector<Mat>& patches, Mat& descriptors, Ma
     delete Bold;
 }
 
-void Helper::FindBfMatches(Mat& descriptors1, Mat& descriptors2, vector<DMatch>& matches)
+void Helper::FindMatches(Mat& descriptors1, Mat& descriptors2, vector<DMatch>& matches, NormTypes norm, const float ratio)
 {
-    //BFMatcher matcher;
-    //matcher.match(descriptors1, descriptors2, matches);
     vector<vector<DMatch> > potentialMatches;
-    BFMatcher matcher;
+    BFMatcher matcher(norm);
 
-    matcher.knnMatch(descriptors1, descriptors2, potentialMatches, 2);  // Find two nearest matches
+    matcher.knnMatch(descriptors1, descriptors2, potentialMatches, 2);
     for (int i = 0; i < potentialMatches.size(); ++i)
     {
-        const float ratio = 0.8; // As in Lowe's paper; can be tuned
         if (potentialMatches[i][0].distance < ratio * potentialMatches[i][1].distance)
         {
             matches.push_back(potentialMatches[i][0]);
         }
     }
+}
+
+void Helper::FindMatches(Mat& descriptors1, Mat& descriptors2, vector<DMatch>& matches)
+{
+    BFMatcher matcher;
+    matcher.match(descriptors1, descriptors2, matches);
 }
 
 int Helper::Hampopmasked(uchar *a,uchar *ma,uchar *b,uchar *mb)
@@ -103,7 +103,7 @@ int Helper::Hampop(uchar *a,uchar *b)
   return distL;
 }
 
-void Helper::SaveKeypointsToFile(string filename, vector<KeyPoint> keypoints)
+void Helper::SaveKeypointsToFile(string filename, vector<KeyPoint>& keypoints)
 {
     fstream outputFile;
     outputFile.open(filename.c_str(), ios::out );
